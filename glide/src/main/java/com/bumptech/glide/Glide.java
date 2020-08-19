@@ -242,6 +242,8 @@ public class Glide implements ComponentCallbacks2 {
     @GuardedBy("Glide.class")
     private static void initializeGlide(
             @NonNull Context context, @Nullable GeneratedAppGlideModule generatedAppGlideModule) {
+        //实例化一个 GlideBuilder 在进行初始化
+        //GlideBuilder 默认的一些配置信息
         initializeGlide(context, new GlideBuilder(), generatedAppGlideModule);
     }
 
@@ -251,8 +253,10 @@ public class Glide implements ComponentCallbacks2 {
             @NonNull Context context,
             @NonNull GlideBuilder builder,
             @Nullable GeneratedAppGlideModule annotationGeneratedModule) {
+        // 拿到应用级别的上下文，这里可以避免内存泄漏，我们实际开发也可以通过这种形式拿上下文。
         Context applicationContext = context.getApplicationContext();
         List<com.bumptech.glide.module.GlideModule> manifestModules = Collections.emptyList();
+        //2\. 这里拿到 @GlideModule 标识的注解处理器生成的 GeneratedAppGlideModuleImpl、GeneratedAppGlideModuleFactory ...等等。
         if (annotationGeneratedModule == null || annotationGeneratedModule.isManifestParsingEnabled()) {
             manifestModules = new ManifestParser(applicationContext).parse();
         }
@@ -278,11 +282,12 @@ public class Glide implements ComponentCallbacks2 {
                 Log.d(TAG, "Discovered GlideModule from manifest: " + glideModule.getClass());
             }
         }
-
+        //3\. 通过注解生成的代码拿到 RequestManagerFactory
         RequestManagerRetriever.RequestManagerFactory factory =
                 annotationGeneratedModule != null
                         ? annotationGeneratedModule.getRequestManagerFactory()
                         : null;
+        //4\. 将拿到的工厂添加到 GlideBuilder
         builder.setRequestManagerFactory(factory);
         for (com.bumptech.glide.module.GlideModule module : manifestModules) {
             module.applyOptions(applicationContext, builder);
@@ -292,6 +297,7 @@ public class Glide implements ComponentCallbacks2 {
         }
         //todo. 这里通过 Builder 建造者模式，构建出 Glide 实例对象
         Glide glide = builder.build(applicationContext);
+        //6\. 开始注册组件回调
         for (com.bumptech.glide.module.GlideModule module : manifestModules) {
             try {
                 module.registerComponents(applicationContext, glide, glide.registry);
@@ -309,6 +315,7 @@ public class Glide implements ComponentCallbacks2 {
             annotationGeneratedModule.registerComponents(applicationContext, glide, glide.registry);
         }
         applicationContext.registerComponentCallbacks(glide);
+        //将构建出来的 glide 赋值给 Glide 的静态变量
         Glide.glide = glide;
     }
 
@@ -367,6 +374,7 @@ public class Glide implements ComponentCallbacks2 {
             @NonNull List<RequestListener<Object>> defaultRequestListeners,
             boolean isLoggingRequestOriginsEnabled,
             boolean isImageDecoderEnabledForBitmaps) {
+        //将 Builder 构建的线程池，对象池，缓存池保存到 Glide 中
         this.engine = engine;
         this.bitmapPool = bitmapPool;
         this.arrayPool = arrayPool;
@@ -574,7 +582,9 @@ public class Glide implements ComponentCallbacks2 {
                     new BitmapDrawableDecoder<>(resources, byteBufferVideoDecoder));
         }
 
+        //用于显示对应图片的工厂
         ImageViewTargetFactory imageViewTargetFactory = new ImageViewTargetFactory();
+        //构建一个 Glide 专属的 上下文
         glideContext =
                 new GlideContext(
                         context,

@@ -3,10 +3,12 @@ package com.bumptech.glide;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.widget.ImageView;
+
 import androidx.annotation.GuardedBy;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+
 import com.bumptech.glide.Glide.RequestOptionsFactory;
 import com.bumptech.glide.load.engine.Engine;
 import com.bumptech.glide.load.engine.bitmap_recycle.ArrayPool;
@@ -14,6 +16,7 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.ImageViewTargetFactory;
 import com.bumptech.glide.request.target.ViewTarget;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -23,108 +26,109 @@ import java.util.Map.Entry;
  * required to load resources.
  */
 public class GlideContext extends ContextWrapper {
-  @VisibleForTesting
-  static final TransitionOptions<?, ?> DEFAULT_TRANSITION_OPTIONS =
-      new GenericTransitionOptions<>();
+    @VisibleForTesting
+    static final TransitionOptions<?, ?> DEFAULT_TRANSITION_OPTIONS =
+            new GenericTransitionOptions<>();
 
-  private final ArrayPool arrayPool;
-  private final Registry registry;
-  private final ImageViewTargetFactory imageViewTargetFactory;
-  private final RequestOptionsFactory defaultRequestOptionsFactory;
-  private final List<RequestListener<Object>> defaultRequestListeners;
-  private final Map<Class<?>, TransitionOptions<?, ?>> defaultTransitionOptions;
-  private final Engine engine;
-  private final boolean isLoggingRequestOriginsEnabled;
-  private final int logLevel;
+    private final ArrayPool arrayPool;
+    private final Registry registry;
+    private final ImageViewTargetFactory imageViewTargetFactory;
+    private final RequestOptionsFactory defaultRequestOptionsFactory;
+    private final List<RequestListener<Object>> defaultRequestListeners;
+    private final Map<Class<?>, TransitionOptions<?, ?>> defaultTransitionOptions;
+    private final Engine engine;
+    private final boolean isLoggingRequestOriginsEnabled;
+    private final int logLevel;
 
-  @Nullable
-  @GuardedBy("this")
-  private RequestOptions defaultRequestOptions;
+    @Nullable
+    @GuardedBy("this")
+    private RequestOptions defaultRequestOptions;
 
-  public GlideContext(
-      @NonNull Context context,
-      @NonNull ArrayPool arrayPool,
-      @NonNull Registry registry,
-      @NonNull ImageViewTargetFactory imageViewTargetFactory,
-      @NonNull RequestOptionsFactory defaultRequestOptionsFactory,
-      @NonNull Map<Class<?>, TransitionOptions<?, ?>> defaultTransitionOptions,
-      @NonNull List<RequestListener<Object>> defaultRequestListeners,
-      @NonNull Engine engine,
-      boolean isLoggingRequestOriginsEnabled,
-      int logLevel) {
-    super(context.getApplicationContext());
-    this.arrayPool = arrayPool;
-    this.registry = registry;
-    this.imageViewTargetFactory = imageViewTargetFactory;
-    this.defaultRequestOptionsFactory = defaultRequestOptionsFactory;
-    this.defaultRequestListeners = defaultRequestListeners;
-    this.defaultTransitionOptions = defaultTransitionOptions;
-    this.engine = engine;
-    this.isLoggingRequestOriginsEnabled = isLoggingRequestOriginsEnabled;
-    this.logLevel = logLevel;
-  }
-
-  public List<RequestListener<Object>> getDefaultRequestListeners() {
-    return defaultRequestListeners;
-  }
-
-  public synchronized RequestOptions getDefaultRequestOptions() {
-    if (defaultRequestOptions == null) {
-      defaultRequestOptions = defaultRequestOptionsFactory.build().lock();
+    public GlideContext(
+            @NonNull Context context,
+            @NonNull ArrayPool arrayPool,
+            @NonNull Registry registry,
+            @NonNull ImageViewTargetFactory imageViewTargetFactory,
+            @NonNull RequestOptionsFactory defaultRequestOptionsFactory,
+            @NonNull Map<Class<?>, TransitionOptions<?, ?>> defaultTransitionOptions,
+            @NonNull List<RequestListener<Object>> defaultRequestListeners,
+            @NonNull Engine engine,
+            boolean isLoggingRequestOriginsEnabled,
+            int logLevel) {
+        super(context.getApplicationContext());
+        this.arrayPool = arrayPool;
+        this.registry = registry;
+        this.imageViewTargetFactory = imageViewTargetFactory;
+        this.defaultRequestOptionsFactory = defaultRequestOptionsFactory;
+        this.defaultRequestListeners = defaultRequestListeners;
+        this.defaultTransitionOptions = defaultTransitionOptions;
+        this.engine = engine;
+        this.isLoggingRequestOriginsEnabled = isLoggingRequestOriginsEnabled;
+        this.logLevel = logLevel;
     }
 
-    return defaultRequestOptions;
-  }
+    public List<RequestListener<Object>> getDefaultRequestListeners() {
+        return defaultRequestListeners;
+    }
 
-  @SuppressWarnings("unchecked")
-  @NonNull
-  public <T> TransitionOptions<?, T> getDefaultTransitionOptions(@NonNull Class<T> transcodeClass) {
-    TransitionOptions<?, ?> result = defaultTransitionOptions.get(transcodeClass);
-    if (result == null) {
-      for (Entry<Class<?>, TransitionOptions<?, ?>> value : defaultTransitionOptions.entrySet()) {
-        if (value.getKey().isAssignableFrom(transcodeClass)) {
-          result = value.getValue();
+    public synchronized RequestOptions getDefaultRequestOptions() {
+        if (defaultRequestOptions == null) {
+            defaultRequestOptions = defaultRequestOptionsFactory.build().lock();
         }
-      }
+
+        return defaultRequestOptions;
     }
-    if (result == null) {
-      result = DEFAULT_TRANSITION_OPTIONS;
+
+    @SuppressWarnings("unchecked")
+    @NonNull
+    public <T> TransitionOptions<?, T> getDefaultTransitionOptions(@NonNull Class<T> transcodeClass) {
+        TransitionOptions<?, ?> result = defaultTransitionOptions.get(transcodeClass);
+        if (result == null) {
+            for (Entry<Class<?>, TransitionOptions<?, ?>> value : defaultTransitionOptions.entrySet()) {
+                if (value.getKey().isAssignableFrom(transcodeClass)) {
+                    result = value.getValue();
+                }
+            }
+        }
+        if (result == null) {
+            result = DEFAULT_TRANSITION_OPTIONS;
+        }
+        return (TransitionOptions<?, T>) result;
     }
-    return (TransitionOptions<?, T>) result;
-  }
 
-  @NonNull
-  public <X> ViewTarget<ImageView, X> buildImageViewTarget(
-      @NonNull ImageView imageView, @NonNull Class<X> transcodeClass) {
-    return imageViewTargetFactory.buildTarget(imageView, transcodeClass);
-  }
+    @NonNull
+    public <X> ViewTarget<ImageView, X> buildImageViewTarget(
+            @NonNull ImageView imageView, @NonNull Class<X> transcodeClass) {
+        //调用 工厂模式 根据 transcodeClass 生成出一个对应的 ImageViewTarget
+        return imageViewTargetFactory.buildTarget(imageView, transcodeClass);
+    }
 
-  @NonNull
-  public Engine getEngine() {
-    return engine;
-  }
+    @NonNull
+    public Engine getEngine() {
+        return engine;
+    }
 
-  @NonNull
-  public Registry getRegistry() {
-    return registry;
-  }
+    @NonNull
+    public Registry getRegistry() {
+        return registry;
+    }
 
-  public int getLogLevel() {
-    return logLevel;
-  }
+    public int getLogLevel() {
+        return logLevel;
+    }
 
-  @NonNull
-  public ArrayPool getArrayPool() {
-    return arrayPool;
-  }
+    @NonNull
+    public ArrayPool getArrayPool() {
+        return arrayPool;
+    }
 
-  /**
-   * Returns {@code true} if Glide should populate {@link
-   * com.bumptech.glide.load.engine.GlideException#setOrigin(Exception)} for failed requests.
-   *
-   * <p>This is an experimental API that may be removed in the future.
-   */
-  public boolean isLoggingRequestOriginsEnabled() {
-    return isLoggingRequestOriginsEnabled;
-  }
+    /**
+     * Returns {@code true} if Glide should populate {@link
+     * com.bumptech.glide.load.engine.GlideException#setOrigin(Exception)} for failed requests.
+     *
+     * <p>This is an experimental API that may be removed in the future.
+     */
+    public boolean isLoggingRequestOriginsEnabled() {
+        return isLoggingRequestOriginsEnabled;
+    }
 }

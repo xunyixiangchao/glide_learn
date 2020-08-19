@@ -1,3 +1,5 @@
 rootProject.name='glide_learn'
 include ':app'
 include ':glide'
+include ':third_party:gif_decoder'
+include ':third_party:disklrucache'

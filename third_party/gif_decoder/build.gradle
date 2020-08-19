@@ -1,0 +1,30 @@
+apply plugin: 'com.android.library'
+
+dependencies {
+    implementation "androidx.annotation:annotation:1.0.0"
+//
+//    testImplementation project(':testutil')
+//    testImplementation "androidx.annotation:annotation:${ANDROID_X_VERSION}"
+//    testImplementation "com.google.truth:truth:${TRUTH_VERSION}"
+//    testImplementation "junit:junit:${JUNIT_VERSION}"
+//    testImplementation "org.mockito:mockito-core:${MOCKITO_VERSION}"
+//    testImplementation "org.robolectric:robolectric:${ROBOLECTRIC_VERSION}"
+}
+
+android {
+    compileSdkVersion 29
+
+    defaultConfig {
+        minSdkVersion 22
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+        consumerProguardFiles 'proguard-rules.txt'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+}
+//apply from: "${rootProject.projectDir}/scripts/upload.gradle"
